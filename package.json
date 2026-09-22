@@ -1,0 +1,7 @@
+{
+    "name": "cmdpaintings",
+    "private": true,
+    "scripts": {
+        "start": "node imagekit_server.js"
+    }
+}
