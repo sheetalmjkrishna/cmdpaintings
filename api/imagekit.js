@@ -23,8 +23,17 @@ function cors(response, request) {
         response.setHeader("Access-Control-Allow-Origin", requestOrigin);
         response.setHeader("Vary", "Origin");
     }
-    response.setHeader("Access-Control-Allow-Methods", "GET, DELETE, OPTIONS");
-    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type, x-portfolio-password");
+}
+
+function passwordMatches(supplied) {
+    const configured = process.env.AUTH_PASSWORD;
+    if (!configured || typeof supplied !== "string" || supplied.length === 0) return false;
+    const suppliedBytes = Buffer.from(supplied);
+    const configuredBytes = Buffer.from(configured);
+    if (suppliedBytes.length !== configuredBytes.length) return false;
+    return crypto.timingSafeEqual(suppliedBytes, configuredBytes);
 }
 
 function sendJson(response, statusCode, body, request) {
@@ -50,4 +59,4 @@ async function imageKitRequest(method, endpoint) {
     });
 }
 
-module.exports = { crypto, getConfig, sendJson, handleOptions, imageKitRequest };
+module.exports = { crypto, getConfig, sendJson, handleOptions, imageKitRequest, passwordMatches };
