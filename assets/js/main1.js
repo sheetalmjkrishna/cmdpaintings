@@ -158,25 +158,6 @@ window.addEventListener('load', () => {
   }
 });
 
-/**
- * Skills animation
- */
-let skilsContent = select('.skills-content');
-if (skilsContent) {
-  new Waypoint({
-    element: skilsContent,
-    offset: '80%',
-    handler: function (direction) {
-      let progress = select('.progress .progress-bar', true);
-      progress.forEach((el) => {
-        el.style.width = el.getAttribute('aria-valuenow') + '%'
-      });
-    }
-  })
-}
-
-
-
 function startPortfolioSlider() {
   /**
    * Porfolio isotope and filter
@@ -218,36 +199,25 @@ function startPortfolioSlider() {
     closeOnOutsideClick: false
   });
 
-  /**
-   * Portfolio details slider
-   */
-  new Swiper('.portfolio-details-slider', {
-    speed: 400,
-    loop: true,
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      type: 'bullets',
-      clickable: true
-    }
-  });
 }
 
 /**
 * Testimonials slider
 */
 function startTestimonialSlider(argument) {
-  new Swiper('.testimonials-slider', {
+  const testimonialSlides = document.querySelectorAll('.testimonials-slider .swiper-slide');
+  if (!testimonialSlides.length) return;
+  if (window.testimonialsSlider) {
+    window.testimonialsSlider.destroy(true, true);
+  }
+  window.testimonialsSlider = new Swiper('.testimonials-slider', {
     speed: 600,
-    loop: true,
+    loop: testimonialSlides.length > 1,
     autoplay: {
       delay: 5000,
       disableOnInteraction: false
     },
-    slidesPerView: 'auto',
+    slidesPerView: 1,
     pagination: {
       el: '.swiper-pagination',
       type: 'bullets',

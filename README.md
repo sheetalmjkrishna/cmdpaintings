@@ -29,3 +29,9 @@ FRONTEND_ORIGIN         Your GitHub Pages URL, such as https://sheetalmjkrishna.
 ```
 
 After Vercel deploys, put its project URL in `api-config.js` as `window.CMDPAINTINGS_API_URL`. The ImageKit URL endpoint is not needed by the API because ImageKit's upload and management APIs are addressed directly.
+ 
+## Reviews
+
+Reviews are stored as one JSON file at `/Reviews/reviews.json` in ImageKit. Public visitors can submit a name and review without logging in; the API validates the input, appends it to the file, and the testimonials section displays the saved reviews as a slideshow.
+
+The reviews API uses the same `IMAGEKIT_PRIVATE_KEY` and `IMAGEKIT_PUBLIC_KEY` variables as the portfolio API. Deploy the Vercel project after adding the review files. Because submissions are public, add rate limiting or moderation before using this on a high-traffic site.

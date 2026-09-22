@@ -18,10 +18,19 @@ function sendJson(response, statusCode, body) {
     response.writeHead(statusCode, {
         "Content-Type": "application/json; charset=utf-8",
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
+        "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, x-portfolio-password"
     });
     response.end(JSON.stringify(body));
+}
+
+function passwordMatches(supplied) {
+    const configured = process.env.AUTH_PASSWORD;
+    if (!configured || typeof supplied !== "string" || supplied.length === 0) return false;
+    const suppliedBytes = Buffer.from(supplied);
+    const configuredBytes = Buffer.from(configured);
+    if (suppliedBytes.length !== configuredBytes.length) return false;
+    return crypto.timingSafeEqual(suppliedBytes, configuredBytes);
 }
 
 function imageKitRequestOptions(method, requestPath) {
@@ -36,7 +45,11 @@ function imageKitRequestOptions(method, requestPath) {
 
 async function handleApi(request, response, requestUrl) {
     if (request.method === "OPTIONS") {
-        response.writeHead(204, { "Access-Control-Allow-Origin": "*" });
+        response.writeHead(204, {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, x-portfolio-password"
+        });
         response.end();
         return true;
     }
@@ -53,7 +66,7 @@ async function handleApi(request, response, requestUrl) {
             sendJson(response, 500, { error: "AUTH_PASSWORD is not configured." });
             return true;
         }
-        if (!requestPassword || requestPassword !== process.env.AUTH_PASSWORD) {
+        if (!passwordMatches(requestPassword)) {
             sendJson(response, 401, { error: "Incorrect password." });
             return true;
         }
@@ -76,6 +89,14 @@ async function handleApi(request, response, requestUrl) {
 
     const deleteMatch = requestUrl.pathname.match(/^\/api\/imagekit\/files\/([^/]+)$/);
     if (request.method === "DELETE" && deleteMatch) {
+        if (!process.env.AUTH_PASSWORD) {
+            sendJson(response, 500, { error: "AUTH_PASSWORD is not configured." });
+            return true;
+        }
+        if (!passwordMatches(request.headers["x-portfolio-password"])) {
+            sendJson(response, 401, { error: "Incorrect password." });
+            return true;
+        }
         const result = await fetch(`https://api.imagekit.io/v1/files/${encodeURIComponent(deleteMatch[1])}`, imageKitRequestOptions("DELETE"));
         const body = result.status === 204 ? {} : await result.json();
         sendJson(response, result.status, body);
